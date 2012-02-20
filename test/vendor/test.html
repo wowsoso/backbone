@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Backbone Demo: Todos</title>
+    <script src="/static/json2.js"></script>
+    <script src="/static/jquery-1.7.1.js"></script>
+    <script src="/static/underscore-1.3.1.js"></script>
+    <script src="/static/backbone.js"></script>
+    <!--<script src="../backbone-localstorage.js"></script>-->
+    <!--<script src="todos.js"></script>-->
+  </head>
+
+  <body>
+    
+  </body>
+  <script>
+/*
+   var object = {};
+    
+   _.extend(object, Backbone.Events);
+ 
+   object.bind("alert fuck", function(msg) {
+     alert("Triggered " + msg);
+   });
+
+   object.trigger("alert", "an event");
+
+*/
+// Poll every 10 seconds to keep the channel model up-to-date.
+//setInterval(function() {
+//  channel.fetch();
+//}, 10000);
+
+
+Backbone.emulateHTTP = true;
+
+//Backbone.sync = function(method, model) {
+//  $.post("http://127.0.0.1:8080/set/", {"data": JSON.stringify(model)}, function(){})
+//};
+
+var Model = Backbone.Model.extend({
+   url: 'http://127.0.0.1:8080/set/'  
+});
+
+var model = new Model({
+   title: "test",
+   author: "soso"
+});
+
+model.save();
+
+setInterval(function() {
+  model.fetch({
+    url: "http://127.0.0.1:8080/get/",
+    success: function(m, r) {
+      alert(r.author);
+    }
+  });
+}, 5000);
+
+</script>
+</html>
