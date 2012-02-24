@@ -1296,6 +1296,7 @@
     ctor.prototype = parent.prototype;
     child.prototype = new ctor();
 
+
     // Add prototype properties (instance properties) to the subclass,
     // if supplied.
     if (protoProps) _.extend(child.prototype, protoProps);

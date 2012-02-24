@@ -7,15 +7,29 @@ db = conn.test
 
 @route('/get/')
 def get():
-    print db.model.find_one()
-    import pdb
-    pdb.set_trace()
-    return db.model.find_one()
+    return {'status': "ok"}
+
+@route('/get/persons/')
+def get_persons():
+    #import pdb
+    #pdb.set_trace()
+    query = request.query
+    results = db.model.find({'points':[int(query.x), int(query.y)]})
+
+
+    #print map(lambda x: {"name":x["name"]}, results)
+    return {'persons': map(lambda x: {"name":x["name"]}, results)}
 
 @route('/set/', method='POST')
 def set():
-    db.model.insert(request.json)
-    return "ok"
+    req = request.json
+    #import pdb
+    #pdb.set_trace()
+    if db.model.find({"name": req["name"]}).count():
+        db.model.update({"name": req["name"]}, req)
+    else:
+        db.model.insert(request.json)
+    return {"status": "ok"}
 
 
 @route('/test/')
@@ -27,4 +41,4 @@ def static(filename):
     return static_file(filename, root='../vendor/')
 
 run(host='localhost', port=8080)
-    
+
