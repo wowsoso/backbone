@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Backbone Demo: Todos</title>
+    <script src="/static/json2.js"></script>
+    <script src="/static/jquery-1.7.1.js"></script>
+    <script src="/static/underscore-1.3.1.js"></script>
+    <script src="/static/backbone.js"></script>
+    <!--<script src="../backbone-localstorage.js"></script>-->
+    <!--<script src="todos.js"></script>-->
+  </head>
+
+  <body>
+
+  </body>
+  <script>
+/*
+   var object = {};
+
+   _.extend(object, Backbone.Events);
+
+   object.bind("alert fuck", function(msg) {
+     alert("Triggered " + msg);
+   });
+
+   object.trigger("alert", "an event");
+
+*/
+// Poll every 10 seconds to keep the channel model up-to-date.
+//setInterval(function() {
+//  channel.fetch();
+//}, 10000);
+
+
+Backbone.emulateHTTP = true;
+
+
+
+
+
+
+Points = Backbone.Model.extend({}, {
+  get_points: function(arry) {
+    for(var i =0; i < maps.length;i++) {
+      if(maps[i].get('current').toString() === arry.toString()) {
+        return maps[i];
+      }
+    }
+  }
+
+});
+
+
+var maps = new Array();
+
+var make_map = function(max_x, max_y) {
+  for(var x = 0; x < max_x; x++) {
+    for(var y = 0; y < max_y; y++) {
+      maps.push(
+        new Points({
+          current: [x, y],
+          east:   x == max_x - 1 ? null : [x + 1, y],
+          south:  y == 0 ? null : [x, y - 1],
+          west:   x == 0 ? null : [x - 1, y],
+          nouth:  y == max_y - 1 ? null : [x, y + 1]
+        })
+      );
+    }
+  }
+};
+
+
+var Person = Backbone.Model.extend(
+  {
+    url: 'http://127.0.0.1:8080/set/',
+
+    initialize: function() {
+      this.bind("east", function(points) {
+        if(maps[maps.length - 1].get("current")[0] < points[0]) {
+          console.info("error move");
+          return false;
+        }
+        this.set('points', points);
+        this.save();
+        return true;
+      });
+
+      this.bind("south", function(points) {
+        if(maps[0].get("current")[1] > points[1]) {
+          console.info("error move");
+          return false;
+        }
+        this.set('points', points);
+        this.save();
+        return true;
+      });
+
+      this.bind("west", function(points) {
+        if(maps[0].get("current")[0] > points[0]) {
+          console.info("error move");
+          return false;
+        }
+        this.set('points', points);
+        this.save();
+        return true;
+      });
+
+      this.bind("north", function(points) {
+        if(maps[maps.length - 1].get("current")[1] < points[1]) {
+          console.info("error move");
+          return false;
+        }
+        this.set('points', points);
+        this.save();
+        return true;
+      });
+
+    },
+
+    east: function() {
+      var points = this.get('points')
+      this.trigger("east", [points[0] + 1, points[1]]);
+      return this;
+    },
+
+    south: function() {
+      var points = this.get('points')
+      this.trigger("south", [points[0], points[1] - 1]);
+      return this;
+    },
+
+    west: function() {
+      var points = this.get('points')
+      this.trigger("west", [points[0] - 1, points[1]]);
+      return this;
+    },
+
+    north: function() {
+      var points = this.get('points')
+      this.trigger("north", [points[0], points[1] + 1]);
+      return this;
+    },
+
+    get_persons: function(points) {
+      this.fetch({
+        url: "http://127.0.0.1:8080/get/persons/",
+        data: {"x": points[0], "y": points[1]},
+        async: false,
+        success: function(m, r) {
+          for(var i = 0; i < r.persons.length; i++) {
+            console.info("role: " + r.persons[i].name + " in this point");
+          }
+
+          return r.persons;
+        },
+        error: function(m, r) {
+          return r
+          console.log("not found!");
+        }
+      });
+    }
+
+  },
+
+  {
+  }
+)
+
+var Role = Person.extend({
+  defaults: {
+    points : [0, 0]
+  },
+
+  look : function() {
+    console.info("current points is" + this.get("points").toString());
+    this.get_persons(this.get("points"));
+
+    return this;
+  },
+
+  whoami : function() {
+    console.info(this.get('name'));
+    return this;
+  }
+})
+
+
+
+
+/*
+var Model = Backbone.Model.extend({
+   url: 'http://127.0.0.1:8080/set/'
+});
+
+var model = new Model({
+   title: "test",
+   author: "soso"
+});
+
+model.save();
+*/
+
+/*
+setInterval(function() {
+  model.fetch({
+    url: "http://127.0.0.1:8080/get/",
+    success: function(m, r) {
+      alert(r.author);
+    }
+  });
+
+}, 5000);
+*/
+</script>
+</html>
